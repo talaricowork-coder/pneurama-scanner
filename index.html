@@ -12,9 +12,10 @@
     .icon { font-size: 3rem; margin-bottom: 10px; display: block; }
     .istruzioni { color: #aaa; font-size: 0.88rem; margin-bottom: 18px; line-height: 1.5; }
     video { width: 100%; border-radius: 10px; border: 2px solid #e31e24; display: none; background: #000; margin-bottom: 12px; }
-    #stato { font-size: 0.8rem; color: #aaa; min-height: 22px; margin-bottom: 10px; }
+    #stato { font-size: 0.8rem; color: #aaa; min-height: 22px; margin-bottom: 10px; line-height: 1.5; }
     .btn { background: #e31e24; color: white; border: none; font-weight: bold; padding: 13px 30px; border-radius: 8px; font-size: 1rem; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; width: 100%; margin-top: 8px; }
     .btn-outline { background: transparent; color: #e31e24; border: 2px solid #e31e24; font-weight: bold; padding: 10px; border-radius: 8px; font-size: 0.85rem; cursor: pointer; width: 100%; margin-top: 8px; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
     .divider { border-top: 1px solid #444; margin: 18px 0; }
     .manuale-label { color: #666; font-size: 0.78rem; margin-bottom: 10px; }
     input { background: #333; border: 1px solid #555; color: #fff; border-radius: 6px; padding: 10px; width: 100%; margin-bottom: 8px; font-size: 0.9rem; }
@@ -39,9 +40,9 @@
     <button class="btn-outline" onclick="location.reload()">🔄 Riavvia</button>
 
     <div class="divider"></div>
-    <p class="manuale-label">⚠️ In alternativa inserisci i dati manualmente:</p>
+    <p class="manuale-label">⚠️ In alternativa inserisci solo la targa:</p>
     <input type="text" id="m_targa" placeholder="Targa (es. AB123CD)" style="text-transform:uppercase;">
-    <button class="btn-outline" onclick="caricaManuale()">CARICA SCHEDA MANUALMENTE</button>
+    <button class="btn-outline" onclick="caricaManuale()">🔍 CERCA PER TARGA</button>
   </div>
 
 <script>
@@ -75,7 +76,6 @@
       stato.innerText = '🟢 Fotocamera attiva — inquadra il QR Code';
 
       video.addEventListener('loadedmetadata', function() {
-        // Prova BarcodeDetector (Chrome Android/Desktop)
         if ('BarcodeDetector' in window) {
           var detector = new BarcodeDetector({ formats: ['qr_code'] });
           intervallo = setInterval(function() {
@@ -92,7 +92,6 @@
             }
           }, 300);
         } else {
-          // Fallback: chiedi all'utente di usare il form manuale
           stato.innerHTML = '⚠️ Scanner automatico non disponibile su questo browser.<br>Usa il form manuale qui sotto.';
         }
       });
@@ -123,8 +122,9 @@
       var url = new URL(urlLetta);
       var t = url.searchParams.get("targa") || "";
       var e = url.searchParams.get("email") || "";
-      if (!t || !e) throw new Error("Parametri mancanti");
+      if (!t) throw new Error("Targa mancante");
       stato.innerText = '✅ QR letto: ' + t.toUpperCase() + ' — Apertura scheda...';
+      // Passa targa ed email (se presente), Apps Script trova il resto
       window.location.href = APPS_SCRIPT_URL + "?meccanico=si&targa=" + encodeURIComponent(t) + "&email=" + encodeURIComponent(e);
     } catch(err) {
       stato.innerHTML = '<span style="color:#e31e24;">❌ QR non valido. Riprova o usa il form manuale.</span>';
@@ -134,10 +134,10 @@
 
   function caricaManuale() {
     var t = document.getElementById('m_targa').value.trim().toUpperCase();
-    var e = document.getElementById('m_email').value.trim().toLowerCase();
-    if (!t || !e) { alert("Inserisci targa ed email."); return; }
+    if (!t) { alert("Inserisci la targa."); return; }
     stato.innerText = '⏳ Apertura scheda...';
-    window.location.href = APPS_SCRIPT_URL + "?meccanico=si&targa=" + encodeURIComponent(t) + "&email=" + encodeURIComponent(e);
+    // Passa solo la targa — Apps Script troverà l'email dal database
+    window.location.href = APPS_SCRIPT_URL + "?meccanico=si&targa=" + encodeURIComponent(t);
   }
 </script>
 </body>
