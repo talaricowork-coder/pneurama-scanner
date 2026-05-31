@@ -2,78 +2,144 @@
 <html>
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Pneurama — Scanner</title>
+  <title>Pneurama — Scanner Officina</title>
   <style>
-    body { background: #1a1a1a; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; margin: 0; font-family: Arial, sans-serif; }
-    h2 { color: #fff; font-weight: 900; font-style: italic; text-transform: uppercase; letter-spacing: -1px; margin-bottom: 5px; }
-    p { color: #aaa; font-size: 0.85rem; margin-bottom: 20px; text-align: center; }
-    video { width: 90vw; max-width: 400px; border-radius: 12px; border: 3px solid #e31e24; }
-    #stato { color: #aaa; font-size: 0.8rem; margin-top: 12px; text-align: center; min-height: 20px; }
-    .btn { background: #e31e24; color: white; border: none; font-weight: bold; padding: 12px 30px; border-radius: 8px; font-size: 1rem; cursor: pointer; text-transform: uppercase; margin-top: 15px; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #1a1a1a; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; font-family: 'Helvetica Neue', Arial, sans-serif; padding: 20px; }
+    .logo { font-size: 2.2rem; font-weight: 900; font-style: italic; text-transform: uppercase; color: #fff; letter-spacing: -2px; margin-bottom: 4px; }
+    .sub { color: #aaa; font-size: 0.65rem; letter-spacing: 3px; text-transform: uppercase; margin-bottom: 25px; }
+    .box { background: #2a2a2a; border: 2px solid #e31e24; border-radius: 16px; padding: 25px 20px; width: 100%; max-width: 400px; text-align: center; }
+    .icon { font-size: 3rem; margin-bottom: 10px; display: block; }
+    .istruzioni { color: #aaa; font-size: 0.88rem; margin-bottom: 18px; line-height: 1.5; }
+    video { width: 100%; border-radius: 10px; border: 2px solid #e31e24; display: none; background: #000; margin-bottom: 12px; }
+    #stato { font-size: 0.8rem; color: #aaa; min-height: 22px; margin-bottom: 10px; }
+    .btn { background: #e31e24; color: white; border: none; font-weight: bold; padding: 13px 30px; border-radius: 8px; font-size: 1rem; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; width: 100%; margin-top: 8px; }
+    .btn-outline { background: transparent; color: #e31e24; border: 2px solid #e31e24; font-weight: bold; padding: 10px; border-radius: 8px; font-size: 0.85rem; cursor: pointer; width: 100%; margin-top: 8px; }
+    .divider { border-top: 1px solid #444; margin: 18px 0; }
+    .manuale-label { color: #666; font-size: 0.78rem; margin-bottom: 10px; }
+    input { background: #333; border: 1px solid #555; color: #fff; border-radius: 6px; padding: 10px; width: 100%; margin-bottom: 8px; font-size: 0.9rem; }
+    input::placeholder { color: #666; }
+    .badge { display: inline-block; background: #e31e24; color: white; font-size: 0.65rem; font-weight: bold; padding: 3px 10px; border-radius: 50px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 18px; }
   </style>
 </head>
 <body>
-  <h2>PNEURAMA</h2>
-  <p>Inquadra il QR Code del cliente</p>
-  <video id="video" autoplay playsinline muted></video>
-  <div id="stato">Avvio fotocamera...</div>
-  <button class="btn" onclick="location.reload()">🔄 Riavvia</button>
 
-  <script>
-    // ⚠️ SOSTITUISCI CON IL TUO URL APPS SCRIPT
-    var APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyl3BJFMEoGzEBDCbGq9bKlfsCdimNhlZHO4Upc43gbeTRh3s0pMk__RQMGqseb0SfS/exec";
+  <div class="logo">PNEURAMA</div>
+  <div class="sub">Pneumatici &amp; Tuning</div>
 
-    var video = document.getElementById('video');
-    var stato = document.getElementById('stato');
-    var canvas = document.createElement('canvas');
-    var ctx = canvas.getContext('2d');
-    var intervallo = null;
+  <div class="box">
+    <span class="badge">🔧 Accesso Officina</span>
+    <span class="icon">📷</span>
+    <p class="istruzioni">Inquadra il QR Code del cliente per aprire la sua scheda veicolo</p>
+
+    <video id="video" autoplay playsinline muted></video>
+    <div id="stato"></div>
+
+    <button class="btn" id="btnAvvia" onclick="avviaScanner()">AVVIA FOTOCAMERA</button>
+    <button class="btn-outline" onclick="location.reload()">🔄 Riavvia</button>
+
+    <div class="divider"></div>
+    <p class="manuale-label">⚠️ In alternativa inserisci i dati manualmente:</p>
+    <input type="text" id="m_targa" placeholder="Targa (es. AB123CD)" style="text-transform:uppercase;">
+    <input type="email" id="m_email" placeholder="Email cliente">
+    <button class="btn-outline" onclick="caricaManuale()">CARICA SCHEDA MANUALMENTE</button>
+  </div>
+
+<script>
+  var APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz99hsyggLaPMERWcrc3DglTNAlqR08mHss75-F9LZJf5RTeZc1ZX5oJhTqZoNx5pLTRw/exec";
+
+  var video = document.getElementById('video');
+  var stato = document.getElementById('stato');
+  var canvas = document.createElement('canvas');
+  var ctx = canvas.getContext('2d');
+  var intervallo = null;
+  var streamAttivo = null;
+
+  function avviaScanner() {
+    var btn = document.getElementById('btnAvvia');
+
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      stato.innerHTML = '<span style="color:#e31e24;">❌ Browser non supportato. Usa il form manuale.</span>';
+      return;
+    }
+
+    stato.innerText = 'Richiesta accesso fotocamera...';
+    btn.disabled = true;
 
     navigator.mediaDevices.getUserMedia({
       video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } }
     })
     .then(function(stream) {
+      streamAttivo = stream;
       video.srcObject = stream;
-      stato.innerText = '🟢 Fotocamera attiva — inquadra il QR';
+      video.style.display = 'block';
+      stato.innerText = '🟢 Fotocamera attiva — inquadra il QR Code';
 
       video.addEventListener('loadedmetadata', function() {
-        intervallo = setInterval(function() {
-          if (video.readyState === video.HAVE_ENOUGH_DATA) {
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            ctx.drawImage(video, 0, 0);
-            // Usa BarcodeDetector se disponibile (Chrome Android), altrimenti mostra errore
-            if ('BarcodeDetector' in window) {
-              var detector = new BarcodeDetector({ formats: ['qr_code'] });
+        // Prova BarcodeDetector (Chrome Android/Desktop)
+        if ('BarcodeDetector' in window) {
+          var detector = new BarcodeDetector({ formats: ['qr_code'] });
+          intervallo = setInterval(function() {
+            if (video.readyState === video.HAVE_ENOUGH_DATA) {
+              canvas.width = video.videoWidth;
+              canvas.height = video.videoHeight;
+              ctx.drawImage(video, 0, 0);
               detector.detect(canvas).then(function(risultati) {
                 if (risultati.length > 0) {
-                  clearInterval(intervallo);
-                  stream.getTracks().forEach(function(t) { t.stop(); });
+                  fermaScanner();
                   elaboraQr(risultati[0].rawValue);
                 }
-              });
+              }).catch(function() {});
             }
-          }
-        }, 300);
+          }, 300);
+        } else {
+          // Fallback: chiedi all'utente di usare il form manuale
+          stato.innerHTML = '⚠️ Scanner automatico non disponibile su questo browser.<br>Usa il form manuale qui sotto.';
+        }
       });
     })
     .catch(function(err) {
-      stato.innerHTML = '<span style="color:#e31e24;">❌ ' + err.message + '</span>';
-    });
-
-    function elaboraQr(urlLetta) {
-      try {
-        var url = new URL(urlLetta);
-        var t = url.searchParams.get("targa") || "";
-        var e = url.searchParams.get("email") || "";
-        if (!t || !e) throw new Error();
-        stato.innerText = '✅ QR letto: ' + t.toUpperCase();
-        // Reindirizza ad Apps Script con i dati
-        window.location.href = APPS_SCRIPT_URL + "?meccanico=si&targa=" + encodeURIComponent(t) + "&email=" + encodeURIComponent(e);
-      } catch(err) {
-        stato.innerHTML = '<span style="color:#e31e24;">❌ QR non valido. Riprova.</span>';
+      btn.disabled = false;
+      video.style.display = 'none';
+      if (err.name === 'NotAllowedError') {
+        stato.innerHTML = '<span style="color:#e31e24;">❌ Permesso fotocamera negato. Controlla le impostazioni del browser.</span>';
+      } else {
+        stato.innerHTML = '<span style="color:#e31e24;">❌ Fotocamera non disponibile. Usa il form manuale.</span>';
       }
+    });
+  }
+
+  function fermaScanner() {
+    clearInterval(intervallo);
+    intervallo = null;
+    if (streamAttivo) {
+      streamAttivo.getTracks().forEach(function(t) { t.stop(); });
+      streamAttivo = null;
     }
-  </script>
+    video.style.display = 'none';
+  }
+
+  function elaboraQr(urlLetta) {
+    try {
+      var url = new URL(urlLetta);
+      var t = url.searchParams.get("targa") || "";
+      var e = url.searchParams.get("email") || "";
+      if (!t || !e) throw new Error("Parametri mancanti");
+      stato.innerText = '✅ QR letto: ' + t.toUpperCase() + ' — Apertura scheda...';
+      window.location.href = APPS_SCRIPT_URL + "?meccanico=si&targa=" + encodeURIComponent(t) + "&email=" + encodeURIComponent(e);
+    } catch(err) {
+      stato.innerHTML = '<span style="color:#e31e24;">❌ QR non valido. Riprova o usa il form manuale.</span>';
+      document.getElementById('btnAvvia').disabled = false;
+    }
+  }
+
+  function caricaManuale() {
+    var t = document.getElementById('m_targa').value.trim().toUpperCase();
+    var e = document.getElementById('m_email').value.trim().toLowerCase();
+    if (!t || !e) { alert("Inserisci targa ed email."); return; }
+    stato.innerText = '⏳ Apertura scheda...';
+    window.location.href = APPS_SCRIPT_URL + "?meccanico=si&targa=" + encodeURIComponent(t) + "&email=" + encodeURIComponent(e);
+  }
+</script>
 </body>
 </html>
