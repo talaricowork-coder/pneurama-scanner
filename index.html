@@ -46,7 +46,327 @@
   </div>
 
 <script>
-  var APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwX1y890aGzipm-0NT55I8OVofhYpfha47VtNHXt46kJcwcu5T4K39Ws-bDJXuYNzkTyw/exec";
+  var APPS_SCRIPT_URL = "<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <style>
+    body { background-color: #0a0a0a; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #f0f0f0; }
+    .main-card { background: #1a1a1a; padding: 25px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.6); max-width: 550px; margin: 15px auto; border: 1px solid #2a2a2a; }
+    .header-container { display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 5px; }
+    .icona-img { width: 85px; height: auto; }
+    .titolo-pneurama { font-family: 'Arial Black', Gadget, sans-serif; font-style: italic; text-transform: uppercase; line-height: 0.85; text-align: left; }
+    .pneu-main { font-size: 2.6rem; color: #fff; font-weight: 900; letter-spacing: -2px; display: block; }
+    .pneu-sub { font-size: 0.65rem; color: #999; font-weight: bold; letter-spacing: 2.5px; display: block; margin-top: 2px; }
+    .sottotitolo { text-align: center; font-size: 1.4rem; color: #888; margin-bottom: 30px; font-weight: 400; }
+
+    .form-control { background-color: #111 !important; color: #f0f0f0 !important; border: 1px solid #3a3a3a !important; border-radius: 8px; }
+    .form-control:focus { border-color: #e31e24 !important; box-shadow: 0 0 0 0.2rem rgba(227,30,36,0.25) !important; }
+    .form-control::placeholder { color: #555 !important; }
+    label { color: #aaa; font-size: 0.9rem; }
+
+    .intervento-card { border-left: 6px solid #e31e24; padding: 10px 20px; margin-bottom: 20px; background: #111; border-radius: 4px; }
+    .intervento-data { font-weight: bold; font-size: 1.1rem; color: #fff; }
+    .intervento-km { color: #e31e24; font-weight: bold; }
+
+    /* Prezzi storico (solo admin) */
+    .prezzi-box { background: #0a0a0a; border: 1px solid #444; border-radius: 6px; padding: 8px 12px; margin-top: 10px; font-size: 0.82rem; color: #bbb; line-height: 1.8; }
+    .prezzi-box .riga-voce { display: flex; justify-content: space-between; border-bottom: 1px solid #222; padding-bottom: 3px; margin-bottom: 3px; }
+    .prezzi-box .riga-totale { display: flex; justify-content: space-between; color: #e31e24; font-weight: bold; font-size: 0.9rem; margin-top: 6px; padding-top: 4px; border-top: 1px solid #e31e24; }
+
+    .alert-secondary { background-color: #222 !important; border: 1px solid #3a3a3a !important; color: #ddd !important; border-radius: 8px; }
+
+    .admin-section { background-color: #111; border: 2px solid #e31e24; padding: 15px; border-radius: 12px; margin-top: 25px; }
+    .admin-title { font-weight: bold; color: #fff; text-transform: uppercase; font-size: 1rem; margin-bottom: 15px; text-align: center; display: block; }
+    .table-admin { width: 100%; margin-bottom: 10px; }
+    .table-admin th { font-size: 0.8rem; text-transform: uppercase; padding-bottom: 5px; color: #aaa; }
+    .totale-box { background: #e31e24; color: #fff; padding: 10px; border-radius: 8px; text-align: right; font-weight: bold; font-size: 1.2rem; margin: 10px 0; }
+
+    .btn-danger { background-color: #e31e24 !important; border: none !important; font-weight: bold; padding: 12px; color: #fff !important; }
+    .btn-danger:hover { background-color: #c01920 !important; }
+    .btn-dark { background-color: #e31e24 !important; border: none !important; color: #fff !important; font-weight: bold; }
+    .btn-dark:hover { background-color: #c01920 !important; }
+    .btn-outline-secondary { border-color: #444 !important; color: #888 !important; }
+    .btn-outline-secondary:hover { background-color: #2a2a2a !important; color: #ccc !important; }
+    .btn-success { background-color: #28a745; border: none; font-weight: bold; }
+
+    .contatti-footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #2a2a2a; text-align: center; }
+    .contatti-footer a { color: #ccc !important; }
+    .contatti-footer strong { color: #fff; }
+    .btn-contatto { display: inline-block; padding: 10px 18px; border-radius: 50px; text-decoration: none !important; font-weight: bold; margin: 5px; font-size: 0.85rem; }
+    .btn-tel { background-color: #e31e24; color: white !important; }
+    .btn-mail { background-color: #222; color: #ccc !important; border: 1px solid #444; }
+    .btn-web { background-color: #1a1a1a; color: #ccc !important; border: 1px solid #444; display: block; margin: 10px auto; max-width: 250px; }
+
+    .spinner-border { color: #e31e24 !important; }
+    #statusTxt { color: #888; }
+
+    #overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.88); z-index: 999; }
+    #customAlert { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #1a1a1a; padding: 25px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.9); border: 1px solid #3a3a3a; z-index: 1000; text-align: center; width: 85%; max-width: 400px; }
+    #customAlert p { color: #f0f0f0; font-size: 16px; margin-bottom: 15px; font-weight: bold; }
+    #customAlert button { font-weight: bold; cursor: pointer; font-size: 16px; width: 100%; }
+    .qr-print-box { margin: 15px 0; padding: 10px; border: 1px dashed #444; background: #111; border-radius: 10px; }
+    .qr-print-box h6 { color: #bbb; font-weight: bold; }
+    .btn-primary { background-color: #0056b3; border: none; }
+  </style>
+</head>
+<body>
+
+<div id="overlay"></div>
+<div id="customAlert">
+  <div style="font-size: 40px; color: #28a745; margin-bottom: 5px;">&#10004;</div>
+  <p id="alertMessage"></p>
+  
+  <div id="sezQrStampa" style="display: none;" class="qr-print-box">
+    <h6>QR CODE GENERATO</h6>
+    <img id="imgQrStampa" src="" style="width: 180px; height: 180px; margin-bottom: 10px;" alt="QR Code Cliente">
+    <button onclick="stampaIlQr()" class="btn btn-primary btn-block btn-sm mb-2">🖨 STAMPA QR CODE</button>
+  </div>
+
+  <button onclick="window.location.reload()" class="btn btn-success">Chiudi (OK)</button>
+</div>
+
+<div class="container">
+  <div class="main-card">
+    <div class="header-container">
+      <img src="https://lh3.googleusercontent.com/d/1dF4vjiwQ0cgH5J_-EqZGu4lFIyywUVNj" class="icona-img">
+      <div class="titolo-pneurama"><span class="pneu-main">PNEURAMA</span><span class="pneu-sub">PNEUMATICI &amp; TUNING</span></div>
+    </div>
+    <div class="sottotitolo">Storico Interventi</div>
+
+    <div id="areaRicerca">
+      <div class="form-group">
+        <label>Targa Veicolo</label>
+        <input type="text" id="targa" class="form-control" value="<?= targaPrecompilata ?>">
+      </div>
+      <div class="form-group">
+        <label>Email registrata</label>
+        <input type="email" id="email" class="form-control" value="<?= emailPrecompilata ?>">
+      </div>
+      <button onclick="avvia()" class="btn btn-danger btn-block">ACCEDI AI DATI</button>
+      <div id="errorBox" class="text-center mt-2" style="display:none; color:#e31e24;"></div>
+    </div>
+
+    <div id="risultati" style="display:none;">
+      <div class="alert alert-secondary text-center">Cliente: <strong id="nomeC"></strong></div>
+      <div id="listaInterventi"></div>
+      
+      <? if (isAdmin) { ?>
+      <div class="admin-section">
+        <span class="admin-title">🛠 AREA OFFICINA (INSERIMENTO)</span>
+        <input type="text" id="adm_nome" class="form-control mb-2" placeholder="Nome Cliente">
+        <input type="number" id="adm_km" class="form-control mb-3" placeholder="Chilometri attuali">
+        
+        <table class="table-admin">
+          <thead>
+            <tr>
+              <th width="70%">Descrizione Lavoro</th>
+              <th width="30%">Prezzo (&#8364;)</th>
+            </tr>
+          </thead>
+          <tbody id="vociIntervento">
+            <? for(var i=0; i<20; i++) { ?>
+            <tr>
+              <td><input type="text" class="form-control form-control-sm desc-voce" placeholder="es. Cambio Olio"></td>
+              <td><input type="number" class="form-control form-control-sm prezzo-voce" oninput="calcolaTotale()" placeholder="0.00"></td>
+            </tr>
+            <? } ?>
+          </tbody>
+        </table>
+
+        <div class="totale-box">TOTALE: &#8364; <span id="totaleDisplay">0.00</span></div>
+        
+        <textarea id="adm_note" class="form-control mb-3" placeholder="Note extra per il cliente..."></textarea>
+        <button onclick="salvaIntervento()" id="btnSalva" class="btn btn-dark btn-block">REGISTRA E INVIA EMAIL</button>
+      </div>
+      <? } ?>
+
+      <button onclick="window.location.reload()" class="btn btn-outline-secondary btn-sm btn-block mt-4">Esci / Nuova Ricerca</button>
+    </div>
+
+    <div id="status" class="text-center mt-4" style="display:none;">
+      <div class="spinner-border text-danger"></div>
+      <p id="statusTxt">Elaborazione in corso...</p>
+    </div>
+
+    <div class="contatti-footer">
+      <a href="https://www.google.com/maps/search/?api=1&query=Pneurama+Di+Gioia+Via+Trani+131+Corato" target="_blank" style="text-decoration: none; display: block; margin-bottom: 20px;">
+        <div style="font-size: 0.95rem; line-height: 1.4;">
+          <span style="font-size: 1.2rem;">📍</span> <strong>Pneurama Di Gioia</strong><br>
+          Via Trani, 131, 70033 Corato BA
+        </div>
+      </a>
+      <a href="https://pneurama-di-gioia.firststop.it" target="_blank" class="btn-contatto btn-web">🌐 Visita Sito Web</a>
+      <div class="d-flex justify-content-center flex-wrap">
+        <a href="tel:+390802221455" class="btn-contatto btn-tel">📞 Chiama</a>
+        <a href="mailto:pneurama@libero.it" class="btn-contatto btn-mail">✉️ Email</a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  var datiGlobaliPerQr = { targa: "", email: "" };
+
+  function mostraMessaggio(testo) {
+    document.getElementById('alertMessage').innerText = testo;
+    document.getElementById('overlay').style.display = 'block';
+    document.getElementById('customAlert').style.display = 'block';
+  }
+
+  function calcolaTotale() {
+    var prezzi = document.querySelectorAll('.prezzo-voce');
+    var totale = 0;
+    prezzi.forEach(function(p) {
+      var val = parseFloat(p.value);
+      if(!isNaN(val)) totale += val;
+    });
+    document.getElementById('totaleDisplay').innerText = totale.toFixed(2);
+  }
+
+  function costruisciPrezziHtml(prezziRaw) {
+    if (!prezziRaw || prezziRaw.toString().trim() === "") return "";
+    var righe = prezziRaw.toString().trim().split("\n");
+    var righeHtml = "";
+    righe.forEach(function(riga) {
+      riga = riga.trim();
+      if (riga === "" || riga === "------------------") return;
+      var isTotale = riga.toUpperCase().indexOf("TOTALE") !== -1;
+      if (isTotale) {
+        righeHtml += '<div class="riga-totale"><span>TOTALE</span><span>' + riga.replace(/TOTALE:?\s*/i, "") + '</span></div>';
+      } else {
+        var match = riga.match(/^(.*?)\s{2,}(.*\u20ac.*)$/);
+        if (match) {
+          righeHtml += '<div class="riga-voce"><span>' + match[1] + '</span><span>' + match[2] + '</span></div>';
+        } else {
+          righeHtml += '<div class="riga-voce"><span>' + riga + '</span><span></span></div>';
+        }
+      }
+    });
+    return righeHtml ? '<div class="prezzi-box">' + righeHtml + '</div>' : "";
+  }
+
+  function avvia() {
+    var t = document.getElementById('targa').value.trim();
+    var e = document.getElementById('email').value.trim();
+    if(!t || !e) return;
+    document.getElementById('areaRicerca').style.display = 'none';
+    document.getElementById('status').style.display = 'block';
+
+    // ---------------------------------------------------------------
+    // SICUREZZA: se siamo in modalità admin chiama cercaDatiAdmin
+    // (che restituisce anche i prezzi), altrimenti cercaDati normale
+    // (che non li include mai nella risposta dal server).
+    // ---------------------------------------------------------------
+    <? if (isAdmin) { ?>
+    google.script.run.withSuccessHandler(mostraRisultati).cercaDatiAdmin(t, e);
+    <? } else { ?>
+    google.script.run.withSuccessHandler(mostraRisultati).cercaDati(t, e);
+    <? } ?>
+  }
+
+  function mostraRisultati(ris) {
+    document.getElementById('status').style.display = 'none';
+    if(!ris.elenco) return;
+
+    document.getElementById('nomeC').innerText = ris.cliente || "Nuovo Cliente";
+    if(document.getElementById('adm_nome')) document.getElementById('adm_nome').value = ris.cliente;
+
+    var html = "";
+    ris.elenco.forEach(function(item) {
+      // item.prezzi esiste solo se la chiamata era cercaDatiAdmin
+      var prezziHtml = item.prezzi ? costruisciPrezziHtml(item.prezzi) : "";
+      html += '<div class="intervento-card">' +
+                '<div class="intervento-data">' + item.data + '</div>' +
+                '<div class="intervento-km">KM: ' + item.km + '</div>' +
+                '<div><strong>Lavoro:</strong> ' + item.lavoro + '</div>' +
+                prezziHtml +
+                '<div class="text-muted small">' + (item.note || "") + '</div>' +
+              '</div>';
+    });
+    document.getElementById('listaInterventi').innerHTML = html || "<p class='text-center' style='color:#888'>Nessun precedente.</p>";
+    document.getElementById('risultati').style.display = 'block';
+  }
+
+  function salvaIntervento() {
+    var vociArr = [];
+    var d = document.querySelectorAll('.desc-voce');
+    var p = document.querySelectorAll('.prezzo-voce');
+    d.forEach(function(el, i) {
+      if(el.value.trim() !== "") {
+        vociArr.push({ desc: el.value, prezzo: p[i].value });
+      }
+    });
+    var targaVal = document.getElementById('targa').value.trim();
+    var emailVal = document.getElementById('email').value.trim();
+    var payload = {
+      targa: targaVal,
+      email: emailVal,
+      nome: document.getElementById('adm_nome').value,
+      km: document.getElementById('adm_km').value,
+      note: document.getElementById('adm_note').value,
+      voci: vociArr
+    };
+    if(!payload.km || vociArr.length === 0) {
+      alert("Compila KM e almeno un lavoro");
+      return;
+    }
+    document.getElementById('btnSalva').disabled = true;
+    document.getElementById('status').style.display = 'block';
+    datiGlobaliPerQr.targa = targaVal;
+    datiGlobaliPerQr.email = emailVal;
+    google.script.run.withSuccessHandler(function() {
+      document.getElementById('status').style.display = 'none';
+      if(document.getElementById('adm_nome')) {
+        google.script.run.withSuccessHandler(function(baseUrl) {
+          var stringaDatiUrl = baseUrl + "?targa=" + encodeURIComponent(datiGlobaliPerQr.targa) + "&email=" + encodeURIComponent(datiGlobaliPerQr.email);
+          var qrApiUrl = "https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=" + encodeURIComponent(stringaDatiUrl);
+          document.getElementById('imgQrStampa').src = qrApiUrl;
+          document.getElementById('sezQrStampa').style.display = 'block';
+          mostraMessaggio("Lavoro effettuato, aggiornato e email inviata!");
+        }).getScriptUrl();
+      } else {
+        mostraMessaggio("Lavoro effettuato, aggiornato e email inviata!");
+      }
+    }).salvaNuovoIntervento(payload);
+  }
+
+  function stampaIlQr() {
+    var urlImmagine = document.getElementById('imgQrStampa').src;
+    var targaCliente = datiGlobaliPerQr.targa.toUpperCase().trim();
+    var finestraStampa = window.open('', '_blank', 'width=500,height=700');
+    finestraStampa.document.write('<html><head><title>Stampa QR V - ' + targaCliente + '</title>');
+    finestraStampa.document.write('<style>');
+    finestraStampa.document.write('@page { size: A4 portrait; margin: 0; }');
+    finestraStampa.document.write('body { margin: 0; padding: 4vh 2vw; width: 100vw; height: 100vh; box-sizing: border-box; font-family: "Arial Black", Gadget, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: space-between; background-color: #fff; overflow: hidden; }');
+    finestraStampa.document.write('.titolo { font-size: 10vw; font-weight: 900; font-style: italic; letter-spacing: -0.5vw; color: #000; text-align: center; margin: 0; padding: 0; line-height: 1; text-transform: uppercase; }');
+    finestraStampa.document.write('.qr-img { width: 90vw; height: auto; aspect-ratio: 1/1; display: block; margin: auto 0; padding: 0; image-rendering: pixelated; }');
+    finestraStampa.document.write('.targa-box { font-size: 9vw; font-weight: bold; color: #fff; background-color: #000; padding: 1vh 6vw; border-radius: 1.5vw; text-align: center; line-height: 1.1; margin: 0; letter-spacing: 0.6vw; font-family: Arial, sans-serif; text-transform: uppercase; }');
+    finestraStampa.document.write('</style></head><body>');
+    finestraStampa.document.write('<div class="titolo">PNEURAMA</div>');
+    finestraStampa.document.write('<img class="qr-img" src="' + urlImmagine + '"/>');
+    finestraStampa.document.write('<div class="targa-box">' + targaCliente + '</div>');
+    finestraStampa.document.write('</body></html>');
+    finestraStampa.document.close();
+    finestraStampa.onload = function() {
+      finestraStampa.focus();
+      finestraStampa.print();
+      finestraStampa.close();
+    };
+    setTimeout(function(){
+      if(!finestraStampa.closed){
+        finestraStampa.focus();
+        finestraStampa.print();
+        finestraStampa.close();
+      }
+    }, 700);
+  }
+</script>
+</body>
+</html>";
 
   var video = document.getElementById('video');
   var stato = document.getElementById('stato');
